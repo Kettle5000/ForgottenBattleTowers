@@ -1,5 +1,13 @@
 # FBT (Forgotten Battle Towers) – RLCraft 1.20.1 build
 
+## 1.0.14-rlcraft
+
+- **The tower collapse no longer gives the golem's killer credit for kills.** The collapse explosions used the player
+  who killed the golem as their source, so every mob they killed (or that died falling after them) counted as that
+  player's kill: chat got "<mob> was blown up by <player>" / "was doomed to fall by <player>" (Simple Difficulty
+  announces every blight death), and the player got player-kill loot, XP and kill advancements for them. The
+  explosions now have no source entity, like a block explosion.
+
 ## 1.0.13-rlcraft
 
 - **The obsidian tower's spawners ignore light.** In 1.20.1 a spawner only spawns a monster where the block light

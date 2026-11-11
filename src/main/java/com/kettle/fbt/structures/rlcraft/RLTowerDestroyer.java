@@ -2,13 +2,11 @@ package com.kettle.fbt.structures.rlcraft;
 
 import com.kettle.fbt.ForgottenBattleTowers;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,7 +37,7 @@ public final class RLTowerDestroyer {
     }
 
     // called when a tower golem dies: queues the explosions and sounds, then the spawner cleanup
-    public static void start(ServerLevel level, BlockPos golemPos, @Nullable Entity killer) {
+    public static void start(ServerLevel level, BlockPos golemPos) {
         // set once the collapse is over, so later queued explosions do nothing
         AtomicBoolean finished = new AtomicBoolean(false);
         // explosion i goes off 7 * i blocks below the golem, 15 s + 5 s * i after it died
@@ -54,8 +52,11 @@ public final class RLTowerDestroyer {
                     finish(level, golemPos, finished);
                     return;
                 }
-                // a power 10 TNT-like explosion, then clear what's left in the 16x16x8 area above it
-                level.explode(killer, golemPos.getX(), y, golemPos.getZ(), POWER, Level.ExplosionInteraction.TNT);
+                // a power 10 TNT-like explosion, then clear what's left in the 16x16x8 area above it.
+                // The explosion has no source entity, so mobs killed by the collapse (or by falling after it)
+                // don't count as kills by the player who killed the golem: no "blown up by <player>" messages,
+                // no player kill loot/xp and no kill advancements from the tower falling.
+                level.explode(null, golemPos.getX(), y, golemPos.getZ(), POWER, Level.ExplosionInteraction.TNT);
                 // break the blast proof obsidian tower blocks the explosion would have broken if they were cobblestone
                 blastTowerBlocks(level, golemPos, y);
                 cleanUpStragglerBlocks(level, golemPos, y);
