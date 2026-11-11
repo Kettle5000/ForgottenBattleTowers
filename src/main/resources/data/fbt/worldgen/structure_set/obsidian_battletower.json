@@ -1,0 +1,15 @@
+{
+  // The obsidian tower has its own set so it is the rarest tower (about 1 per 25,600 chunks).
+  // In the tall set it also got every spot a tall tower failed on high ground, which made it far too common.
+  "structures": [
+    { "structure": "fbt:obsidian_battletower", "weight": 1 }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 546466855460,
+    "spacing": 160,
+    "separation": 80,
+    // Never within 3 chunks of a tall or deep tower
+    "exclusion_zone": { "other_set": "fbt:tall_battletower", "chunk_count": 3 }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  // RLCraft rates: the tall and deep towers share one spawn set, so they never spawn on top of each other.
+  // Each cell of spacing x spacing chunks gets one attempt; the weights pick which tower it tries.
+  // Tall: about 1 per 5,000 chunks, deep: about 1 per 7,600 chunks.
+  "structures": [
+    { "structure": "fbt:tall_battletower", "weight": 3 },
+    { "structure": "fbt:deep_battletower", "weight": 2 }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    // Make sure this is unique and does not match any other structure set's salt
+    "salt": 546466855452,
+    // The average distance apart in chunks for spawn attempts
+    "spacing": 55,
+    // Minimum distance apart in chunks; must be smaller than spacing
+    "separation": 45
+  }
+}

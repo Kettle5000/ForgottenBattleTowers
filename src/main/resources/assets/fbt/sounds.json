@@ -1,0 +1,53 @@
+{
+  "golem": {
+    "category": "hostile",
+    "sounds": [
+      "fbt:golem"
+    ]
+  },
+  "golemawaken": {
+    "category": "hostile",
+    "sounds": [
+      "fbt:golemawaken"
+    ]
+  },
+  "golemcharge": {
+    "category": "hostile",
+    "sounds": [
+      "fbt:golemcharge1",
+	  "fbt:golemcharge2"
+    ]
+  },
+  "golemdeath": {
+    "category": "hostile",
+    "sounds": [
+      "fbt:golemdeath"
+    ]
+  },
+  "golemhurt": {
+    "category": "hostile",
+    "sounds": [
+      "fbt:golemhurt1",
+	  "fbt:golemhurt2"
+    ]
+  },
+  "golemspecial": {
+    "category": "hostile",
+    "sounds": [
+      "fbt:golemspecial1",
+	  "fbt:golemspecial2"
+    ]
+  },
+  "towerbreakstart": {
+    "category": "hostile",
+    "sounds": [
+	  "fbt:towerbreakstart"
+    ]
+  },
+  "towercrumble": {
+    "category": "hostile",
+    "sounds": [
+	  "fbt:towercrumble"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:block_replace",
+  "replace": [
+    {
+      "search": {
+        "predicate": {
+          "condition": "minecraft:match_blocks",
+          "predicate": {
+            "tag": "minecraft:smooth_stone"
+          }
+        }
+      },
+      "replace_with": {
+        "block": "minecraft:air",
+        "probability": 0.1
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "fbt:deep_battletower/startpart",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "fbt:deep_tower",
+        "processors": [
+  			{ "processor_type": "fbt:deep_decay" },
+  			{ "processor_type": "fbt:randomize_spawner" }
+		],
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+  ]
+}

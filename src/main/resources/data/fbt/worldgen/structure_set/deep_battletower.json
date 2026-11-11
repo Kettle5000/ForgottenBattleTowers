@@ -1,0 +1,10 @@
+{
+  // Empty: the deep tower spawns from the tall_battletower set (shared with the tall tower).
+  "structures": [],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 5464664323157,
+    "spacing": 200,
+    "separation": 180
+  }
+}

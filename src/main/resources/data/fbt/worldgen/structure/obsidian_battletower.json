@@ -1,0 +1,10 @@
+{
+  "type": "fbt:rlcraft_battletower",
+  "underground": false,
+  "floors": 12,
+  "tower_type": "obsidian",
+  "biomes": "#minecraft:is_overworld",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}

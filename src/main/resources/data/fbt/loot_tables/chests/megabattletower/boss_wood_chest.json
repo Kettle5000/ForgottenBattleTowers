@@ -1,0 +1,45 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2,
+        "max": 3
+      },
+      "bonus_rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:loot_table",
+          "name": "minecraft:chests/simple_dungeon",
+          "weight": 10,
+          "functions": []
+        },
+        {
+          "type": "minecraft:loot_table",
+          "name": "minecraft:chests/abandoned_mineshaft",
+          "weight": 5,
+          "functions": []
+        },
+        {
+          "type": "minecraft:loot_table",
+          "name": "minecraft:chests/jungle_temple",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:loot_table",
+          "name": "minecraft:chests/shipwreck_treasure",
+          "weight": 10,
+          "functions": []
+        },
+        {
+          "type": "minecraft:loot_table",
+          "name": "minecraft:chests/woodland_mansion",
+          "weight": 10,
+          "functions": []
+        }
+      ]
+    }
+  ],
+  "random_sequence": "fbt:chests/boss_wood_chest"
+}

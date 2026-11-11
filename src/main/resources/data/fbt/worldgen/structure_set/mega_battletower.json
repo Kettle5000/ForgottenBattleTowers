@@ -1,0 +1,10 @@
+{
+  // Empty: fbt's jigsaw mega tower is off. RLCraft's mega battle towers come from RLStructure instead.
+  "structures": [],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 546466855453,
+    "spacing": 120,
+    "separation": 105
+  }
+}
