@@ -1,0 +1,11 @@
+{
+  "type": "fbt:rlcraft_battletower",
+  "underground": false,
+  "floors": 10,
+  "nether": true,
+  "fallback_type": "netherrack",
+  "biomes": "#minecraft:is_nether",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}

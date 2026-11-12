@@ -22,9 +22,12 @@ public class RLBattleTowerPiece extends StructurePiece {
     private final long seed;
     private final int floors;
     private final String towerType;
+    private final String fallbackType;
+    private final boolean nether;
 
     // a new piece, made by RLBattleTowerStructure when the site is picked
-    public RLBattleTowerPiece(BoundingBox box, int x, int y, int z, boolean underground, long seed, int floors, String towerType) {
+    public RLBattleTowerPiece(BoundingBox box, int x, int y, int z, boolean underground, long seed, int floors, String towerType,
+                              String fallbackType, boolean nether) {
         super(FBTStructures.RLCRAFT_BATTLETOWER_PIECE.get(), 0, box);
         this.x = x;
         this.y = y;
@@ -33,6 +36,8 @@ public class RLBattleTowerPiece extends StructurePiece {
         this.seed = seed;
         this.floors = floors;
         this.towerType = towerType;
+        this.fallbackType = fallbackType;
+        this.nether = nether;
     }
 
     // loads a piece back from saved chunk data (a tower whose chunk wasn't built yet when the world was saved)
@@ -45,6 +50,8 @@ public class RLBattleTowerPiece extends StructurePiece {
         this.seed = tag.getLong("Seed");
         this.floors = tag.getInt("Floors");
         this.towerType = tag.getString("TowerType");
+        this.fallbackType = tag.getString("FallbackType");
+        this.nether = tag.getBoolean("Nether");
     }
 
     @Override
@@ -57,6 +64,8 @@ public class RLBattleTowerPiece extends StructurePiece {
         tag.putLong("Seed", this.seed);
         tag.putInt("Floors", this.floors);
         tag.putString("TowerType", this.towerType);
+        tag.putString("FallbackType", this.fallbackType);
+        tag.putBoolean("Nether", this.nether);
     }
 
     @Override
@@ -71,13 +80,14 @@ public class RLBattleTowerPiece extends StructurePiece {
         // same seed every time, so the tower always comes out the same
         RandomSource rand = RandomSource.create(this.seed);
         // 1.12 WorldGenHandler takes the real surface here (first air above y 51), then picks and checks the tower type.
-        int jy = RLTowerBuilder.getSpawnHeight(level, this.x, this.z);
-        if (jy <= 49) {
+        // (The Nether tower uses the cavern floor its site was picked on instead.)
+        int jy = this.nether ? RLTowerBuilder.caveFloorNear(level, this.x, this.y, this.z) : RLTowerBuilder.getSpawnHeight(level, this.x, this.z);
+        if (jy == Integer.MIN_VALUE || !this.nether && jy <= 49 || this.nether && jy > RLBattleTowerStructure.netherMaxGround(this.floors)) {
             if (DEBUG) org.slf4j.LoggerFactory.getLogger("fbt").info("tower {} {}: ground y {} too low", this.x, this.z, jy);
             return;
         }
         // pick the tower type from the ground (sand = sandstone, snow = ice, ...); null if the site fails 1.12's block checks
-        RLTowerType type = RLTowerBuilder.chooseType(level, rand, this.x, jy, this.z);
+        RLTowerType type = RLTowerBuilder.chooseType(level, rand, this.x, jy, this.z, RLTowerType.byName(this.fallbackType), this.nether);
         if (DEBUG) org.slf4j.LoggerFactory.getLogger("fbt").info("tower {} {} y {}: type {}, reason {}", this.x, this.z, jy, type, RLTowerBuilder.lastFail);
         if (type == null) {
             return; // 1.12 rejects this site

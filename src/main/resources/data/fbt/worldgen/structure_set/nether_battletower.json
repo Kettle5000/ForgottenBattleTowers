@@ -1,0 +1,13 @@
+{
+  // Nether towers (netherrack, or basalt on basalt ground): 10 floors from a cavern floor low enough for them to fit
+  // under the bedrock roof (about y 33-46, just above the lava sea). 1.12 had none in the Nether.
+  "structures": [
+    { "structure": "fbt:nether_battletower", "weight": 1 }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 546466855471,
+    "spacing": 40,
+    "separation": 30
+  }
+}

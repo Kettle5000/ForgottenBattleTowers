@@ -1,0 +1,9 @@
+{
+  "type": "fbt:rlcraft_battletower",
+  "underground": false,
+  "fallback_type": "end",
+  "biomes": ["minecraft:end_highlands", "minecraft:end_midlands"],
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}
