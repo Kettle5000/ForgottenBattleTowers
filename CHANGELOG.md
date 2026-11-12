@@ -1,5 +1,10 @@
 # FBT (Forgotten Battle Towers) – RLCraft 1.20.1 build
 
+## 1.0.14-rlcraft
+
+- The tower collapse's explosions have no source entity (the golem's killer was passed as the source before).
+  Synced from the 1.0.14 jar the pack uses, whose source wasn't in this repo.
+
 ## 1.0.13-rlcraft
 
 - **The obsidian tower's spawners ignore light.** In 1.20.1 a spawner only spawns a monster where the block light
