@@ -30,7 +30,20 @@ public enum RLTowerType {
      * stone) and the railing is obsidian blocks. Its railing posts are crying obsidian, so the tower stands out from far
      * away as not an ordinary battle tower.
      */
-    OBSIDIAN(Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.OBSIDIAN, Blocks.POLISHED_BLACKSTONE_BRICK_STAIRS, Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN);
+    OBSIDIAN(Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.OBSIDIAN, Blocks.POLISHED_BLACKSTONE_BRICK_STAIRS, Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN),
+    /**
+     * Not a 1.12 type: built where most of the ground is basalt (fbt-common.toml groundTypes). Basalt walls, smooth basalt
+     * floors; basalt has no stairs or walls, so the stairs and railing are polished blackstone. Its lights are magma
+     * blocks: their light (3) is gone before it reaches any spawner's spawn spots, which are on the floor above, so
+     * the spawners keep working (in 1.20 a monster only spawns at block light 0).
+     */
+    BASALT(Blocks.BASALT, Blocks.MAGMA_BLOCK, Blocks.SMOOTH_BASALT, Blocks.POLISHED_BLACKSTONE_STAIRS, Blocks.POLISHED_BLACKSTONE_WALL),
+    /**
+     * Not a 1.12 type: the End tower (fbt:end_battletower, on the outer islands). End stone brick walls, purpur floors
+     * and stairs, an end stone brick wall railing. No lights: its light spots are plain wall (in the ice tower they're
+     * air, which leaves holes in the wall). Its spawners ignore light like the obsidian tower's.
+     */
+    END(Blocks.END_STONE_BRICKS, Blocks.END_STONE_BRICKS, Blocks.PURPUR_BLOCK, Blocks.PURPUR_STAIRS, Blocks.END_STONE_BRICK_WALL);
 
     // the tower's outer wall block
     public final Block wall;
@@ -81,7 +94,24 @@ public enum RLTowerType {
         return state.is(this.floor);
     }
 
-    // the type named in a structure json's "tower_type" (any case), or null if there isn't one
+    /**
+     * The number 1.12 uses for this type when it knocks holes into the floors (its ordinal: later types get more).
+     * The basalt and End towers are added after obsidian, so they use cobblestone's number instead of a higher one.
+     */
+    public int holeOrdinal() {
+        return this == BASALT || this == END ? COBBLESTONE.ordinal() : ordinal();
+    }
+
+    /**
+     * Spawners that ignore light (see RLTowerBuilder.anyLightSpawnRules): the obsidian and End towers, and the
+     * netherrack tower, which is only built in the Nether now: its glowstone lit 98% of its spawn spots past the
+     * Nether's monster light limit (7). The Nether has no daylight, so that's all this changes there.
+     */
+    public boolean spawnersIgnoreLight() {
+        return this == OBSIDIAN || this == END || this == NETHERRACK;
+    }
+
+    // the type named in a structure json's "tower_type" or the config (any case), or null if there isn't one
     public static RLTowerType byName(String name) {
         for (RLTowerType t : values()) {
             if (t.name().equalsIgnoreCase(name)) {

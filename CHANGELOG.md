@@ -1,5 +1,36 @@
 # FBT (Forgotten Battle Towers) – RLCraft 1.20.1 build
 
+## 1.0.15-rlcraft
+
+- **Which ground makes which tower is a list now** (`config/fbt-common.toml`, `groundTypes`). Each line is blocks or
+  `#tags` = a tower type. Like 1.12, a tower counts what the ground is at 9 spots under it (a snow layer on top, or
+  snow the world adds later, counts as `minecraft:snow`); the line matched by the most spots picks the type, the
+  higher line on a tie. If more spots match no line, it's a normal tower. The defaults are 1.12's rules (sand ->
+  sandstone, snow/ice -> ice, water or leaves/logs/lily pads -> mossy cobblestone) plus basalt.
+- **Basalt tower**, where most of the ground is basalt, polished basalt or smooth basalt: basalt walls, smooth basalt
+  floors, polished blackstone stairs and railing, magma block lights. The magma's light (3) never reaches a
+  spawner's spawn spots (tested: 0 of 679 lit), so its spawners work normally.
+- **Netherrack towers are the Nether's.** The overworld's normal towers are 1 in 5 smooth stone, else cobblestone
+  (1.12 first made 1 in 10 of them netherrack).
+- **Nether towers** (`fbt:nether_battletower`, 1.12 had none in the Nether): 10 floors on a cavern floor low enough to
+  fit under the bedrock roof (about y 33-46, just above the lava sea), with 1.12's site checks on the nearest solid
+  floor at each spot. Netherrack, or basalt on basalt ground. Their spawners ignore light: the glowstone lit 98% of the
+  spawn spots past the Nether's monster limit (7), and the Nether has no daylight. Tested: 3 of 3 fresh sites built.
+- **End towers** (`fbt:end_battletower`, on the outer islands; 1.12 built normal cobblestone ones there): end stone
+  brick walls, purpur floors and stairs, end stone brick wall railing, no lights. Their spawners ignore light.
+- **Nether and End chests** (`chests/nether/`, `chests/end/`): the normal tables with the overworld-only items swapped
+  for that dimension's (seeds -> nether wart and fungi / chorus, torches -> soul torches / end rods, ...), plus a pool
+  of the dimension's items that gets better floor by floor (quartz and gold nuggets up to ghast tears, wither skeleton
+  skulls and Pigstep; chorus and pearls up to shulker shells, end crystals and a dragon head). No netherite.
+  Made by `make_dimension_loot.py` from the normal tables. The pack's ChestGenHook script only targets the normal ones.
+- `/fbt towertype <pos>`: which type the ground there picks, or why the site fails. `/fbt spawntower` takes 9 (basalt)
+  and 10 (end).
+
+## 1.0.14-rlcraft
+
+- The tower collapse's explosions have no source entity (the golem's killer was passed as the source before).
+  Synced from the 1.0.14 jar the pack uses, whose source wasn't in this repo.
+
 ## 1.0.13-rlcraft
 
 - **The obsidian tower's spawners ignore light.** In 1.20.1 a spawner only spawns a monster where the block light

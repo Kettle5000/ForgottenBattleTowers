@@ -2,7 +2,7 @@ package com.kettle.fbt.structures.rlcraft;
 
 import com.kettle.fbt.ForgottenBattleTowersEntities;
 import com.kettle.fbt.BattleTowerGolemEntity;
-import java.util.Arrays;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -51,29 +51,45 @@ public final class RLTowerBuilder {
 
     // ---------------------------------------------------------------- tower type (1.12 getChosenTowerOrdinal)
 
-    /** Returns the tower type for this spot, or null when 1.12 would reject the site (uneven, banned block, hole). */
+    /**
+     * Returns the tower type for this spot, or null when 1.12 would reject the site (uneven, banned block, hole).
+     * <p>
+     * Like 1.12's getChosenTowerOrdinal, it looks at the ground at 9 spots. Which ground gives which type comes from
+     * fbt-common.toml's groundTypes (defaults: 1.12's sand, snow, water and foliage, plus basalt). Each spot counts for
+     * the first line its ground matches, or for "no line". The line with the most spots picks the type (ties: the line
+     * higher up); if "no line" has more, it's a normal tower, picked at random like 1.12.
+     */
     public static RLTowerType chooseType(WorldGenLevel level, RandomSource random, int ix, int jy, int kz) {
-        // count what the ground is at the 9 spots, and reject the site if any spot fails a check
-        int countWater = 0, countSand = 0, countSnow = 0, countFoliage = 0, countElse = 0;
+        return chooseType(level, random, ix, jy, kz, null, false);
+    }
+
+    /**
+     * @param fallback the type when no groundTypes line wins (the Nether tower: netherrack); null for a normal tower
+     * @param nether   find each spot's ground as the cavern floor near jy (the Nether), not 1.12's scan up from y 51
+     */
+    public static RLTowerType chooseType(WorldGenLevel level, RandomSource random, int ix, int jy, int kz, RLTowerType fallback, boolean nether) {
+        List<com.kettle.fbt.config.FBTConfig.GroundRule> rules = com.kettle.fbt.config.FBTConfig.groundRules();
+        int[] counts = new int[rules.size()]; // spots per groundTypes line
+        int countElse = 0; // spots no line matches
         for (int[] pair : CANDIDATES) {
             int x = ix + pair[0], z = kz + pair[1];
             // the top ground block at this spot, and the block above it
-            int checkBlockY = getSurfaceBlockHeight(level, x, z);
+            int checkBlockY = nether ? caveFloorNear(level, x, jy, z) : getSurfaceBlockHeight(level, x, z);
+            if (checkBlockY == Integer.MIN_VALUE) {
+                lastFail = "No cavern floor near y " + jy + " at " + x + " " + z;
+                return null;
+            }
             BlockPos surface = new BlockPos(x, checkBlockY, z);
             BlockState id = level.getBlockState(surface);
             BlockState above = level.getBlockState(surface.above());
-            // sort the spot: snowy, sandy, water, other ground, or plants/trees
-            if (above.is(Blocks.SNOW) || id.is(Blocks.ICE) || willGetSnowOrIce(level, surface, id, above)) {
-                countSnow++;
-            } else if (id.is(Blocks.SAND) || id.is(Blocks.RED_SAND) || id.is(Blocks.SANDSTONE)) {
-                countSand++;
-            } else if (id.is(Blocks.WATER)) {
-                countWater++;
-            } else if (!id.is(BlockTags.LEAVES) && !id.is(Blocks.LILY_PAD) && !id.is(BlockTags.LOGS)) {
-                countElse++;
-            } else {
-                countFoliage++;
+            // what's on the ground here: a snow layer on top (now or once the world adds it) counts as snow
+            BlockState ground = above.is(Blocks.SNOW) || willGetSnowOrIce(level, surface, id, above) ? Blocks.SNOW.defaultBlockState() : id;
+            int line = -1;
+            for (int i = 0; i < rules.size() && line < 0; i++) {
+                if (rules.get(i).matches().test(ground)) line = i;
             }
+            if (line >= 0) counts[line]++;
+            else countElse++;
             // too far above or below the centre: the ground is too uneven
             if (Math.abs(checkBlockY - jy) > MAX_HOLE_DEPTH_IN_BASE) {
                 lastFail = "Uneven Surface, diff " + Math.abs(checkBlockY - jy);
@@ -96,20 +112,19 @@ public final class RLTowerBuilder {
             }
         }
         lastFail = "";
-        // the most common kind of ground picks the type: sand -> sandstone, snow -> ice, water or plants -> mossy;
-        // otherwise 1 in 10 netherrack, then 1 in 5 smooth stone, else cobblestone
-        int[] nums = {countWater, countSnow, countSand, countFoliage, countElse};
-        Arrays.sort(nums);
-        int result = nums[nums.length - 1];
-        if (countSand == result) {
-            return RLTowerType.SANDSTONE;
-        } else if (countSnow == result) {
-            return RLTowerType.ICE;
-        } else if (countWater == result || countFoliage == result) {
-            return RLTowerType.COBBLESTONE_MOSSY;
-        } else if (random.nextInt(10) == 0) {
-            return RLTowerType.NETHERRACK;
+        // the line with the most spots, the first one on a tie; it wins unless more spots matched no line
+        int best = -1;
+        for (int i = 0; i < counts.length; i++) {
+            if (counts[i] > 0 && (best < 0 || counts[i] > counts[best])) best = i;
         }
+        if (best >= 0 && counts[best] >= countElse) {
+            return rules.get(best).type();
+        }
+        if (fallback != null) {
+            return fallback;
+        }
+        // a normal tower: 1 in 5 smooth stone, else cobblestone. (1.12 first made 1 in 10 of these netherrack;
+        // netherrack towers are the Nether's now, fbt:nether_battletower.)
         return random.nextInt(5) == 0 ? RLTowerType.SMOOTHSTONE : RLTowerType.COBBLESTONE;
     }
 
@@ -130,6 +145,33 @@ public final class RLTowerBuilder {
             state = level.getBlockState(new BlockPos(x, h, z));
         } while (!state.isAir() && !isFoliage(state) && h < level.getMaxBuildHeight());
         return h - 1;
+    }
+
+    /**
+     * The Nether's ground: the top of the solid block under cavern air nearest jy, looking up to 22 blocks above and
+     * below (1.12's evenness limit), nearest first. Only ground with 6 solid blocks (no air, lava or other liquid) from
+     * the top down counts, so thin floating ledges are skipped like 1.12's depth check would reject them.
+     * Integer.MIN_VALUE if there's none (all solid, or the lava sea).
+     */
+    public static int caveFloorNear(WorldGenLevel level, int x, int jy, int z) {
+        for (int d = 0; d <= MAX_HOLE_DEPTH_IN_BASE; d++) {
+            for (int y : d == 0 ? new int[]{jy} : new int[]{jy - d, jy + d}) {
+                if (y <= level.getMinBuildHeight() || y >= level.getMaxBuildHeight() - 1) continue;
+                if (level.getBlockState(new BlockPos(x, y + 1, z)).isAir() && solidDown(level, x, y, z)) {
+                    return y;
+                }
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
+
+    // y and the 5 blocks under it are solid (not air, not liquid)
+    private static boolean solidDown(WorldGenLevel level, int x, int y, int z) {
+        for (int d = 0; d <= 5; d++) {
+            BlockState s = level.getBlockState(new BlockPos(x, y - d, z));
+            if (s.isAir() || !s.getFluidState().isEmpty()) return false;
+        }
+        return true;
     }
 
     /** 1.12 WorldGenHandler.getSurfaceBlockHeight: from y 51 up to the first air block. */
@@ -316,8 +358,8 @@ public final class RLTowerBuilder {
                 placeEliteSpawner(world, random, new BlockPos(ix - 3, builderHeight + 6, kz + 2), elite);
             } else if (towerChosen != RLTowerType.NULL) {
                 // every other floor gets two mob spawners
-                // the obsidian tower's spawners ignore light (see anyLightSpawnRules)
-                boolean anyLight = towerChosen == RLTowerType.OBSIDIAN;
+                // the obsidian and End towers' spawners ignore light (see anyLightSpawnRules)
+                boolean anyLight = towerChosen.spawnersIgnoreLight();
                 placeSpawner(world, random, new BlockPos(ix + 2, builderHeight + 6, kz + 2), anyLight);
                 placeSpawner(world, random, new BlockPos(ix - 3, builderHeight + 6, kz + 2), anyLight);
             } else {
@@ -341,7 +383,7 @@ public final class RLTowerBuilder {
                 // the loot stage: on a surface tower the floor number (the top floor is 10);
                 // on a deep tower it counts the other way, since its golem and best loot are at the bottom
                 int stage = !underground ? (topFloor ? 10 : floor) : (floor == 1 ? 10 : Math.abs(11 - floor));
-                loot = lootTableForStage(stage);
+                loot = lootTableForStage(stage, lootFolder(world));
                 // The obsidian tower's top chest has its own table (the pack fills it like the mega battle
                 // tower's boss floor chests, and Locks puts a lock on it by this table id).
                 if (towerChosen == RLTowerType.OBSIDIAN && topFloor && !underground) {
@@ -378,7 +420,7 @@ public final class RLTowerBuilder {
             if (towerChosen != RLTowerType.NULL) {
                 // (The obsidian tower's floors go past 1.12's nine, so its holes stop at 1.12's most: 35 tries.)
                 // number of tries at knocking a hole in the floor
-                int holes = floor * 4 + towerChosen.ordinal() - 8;
+                int holes = floor * 4 + towerChosen.holeOrdinal() - 8;
                 if (towerChosen == RLTowerType.OBSIDIAN) {
                     holes = Math.min(holes, 35);
                 }
@@ -518,11 +560,23 @@ public final class RLTowerBuilder {
     }
 
     /** fbt loot tables for the 1.12 floor stages: 1-9 are the floors, 10 (and anything above 9) is the top floor. */
-    private static ResourceLocation lootTableForStage(int stage) {
+    private static ResourceLocation lootTableForStage(int stage, String folder) {
         if (stage < 1) {
             stage = 1;
         }
-        return stage >= 10 ? new ResourceLocation("fbt", "chests/last_floor") : new ResourceLocation("fbt", "chests/floor" + stage);
+        return stage >= 10 ? new ResourceLocation("fbt", folder + "last_floor") : new ResourceLocation("fbt", folder + "floor" + stage);
+    }
+
+    /**
+     * Where the chest tables are: towers in the Nether and the End have their own (chests/nether/, chests/end/: the
+     * normal ones with a few items swapped for that dimension's and a pool of its items that gets better floor by floor,
+     * made by tools/make_dimension_loot.py), every other tower the normal ones.
+     */
+    private static String lootFolder(WorldGenLevel world) {
+        net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dim = world.getLevel().dimension();
+        if (dim == net.minecraft.world.level.Level.NETHER) return "chests/nether/";
+        if (dim == net.minecraft.world.level.Level.END) return "chests/end/";
+        return "chests/";
     }
 
     /** 1.12 getMobType. Its switch falls through from spider into cave spider, so it's 3 skeleton : 4 zombie : 3 cave spider. */

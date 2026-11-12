@@ -1,0 +1,13 @@
+{
+  // End towers on the outer islands (not the main island), at the overworld tall towers' spacing.
+  // 1.12 built normal towers there (cobblestone and the like); these use the end tower type.
+  "structures": [
+    { "structure": "fbt:end_battletower", "weight": 1 }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 546466855483,
+    "spacing": 55,
+    "separation": 45
+  }
+}

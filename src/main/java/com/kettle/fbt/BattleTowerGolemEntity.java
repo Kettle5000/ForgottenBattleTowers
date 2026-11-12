@@ -262,7 +262,7 @@ public class BattleTowerGolemEntity extends Monster {
          }
 
          serverLevel.playSound(null, towerPos, (SoundEvent)ForgeRegistries.SOUND_EVENTS.getValue(TOWER_BREAK_START), SoundSource.BLOCKS, 4.0F, 1.0F);
-         com.kettle.fbt.structures.rlcraft.RLTowerDestroyer.start(serverLevel, towerPos, cause.getEntity());
+         com.kettle.fbt.structures.rlcraft.RLTowerDestroyer.start(serverLevel, towerPos);
       }
    }
 

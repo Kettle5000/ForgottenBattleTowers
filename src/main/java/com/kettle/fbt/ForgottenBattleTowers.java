@@ -30,6 +30,9 @@ public class ForgottenBattleTowers {
       IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
       // this class's @SubscribeEvent methods (below) listen to game events
       MinecraftForge.EVENT_BUS.register(this);
+      // config/fbt-common.toml (which ground makes which tower type)
+      net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, com.kettle.fbt.config.FBTConfig.SPEC);
+      modEventBus.addListener(com.kettle.fbt.config.FBTConfig::onConfigChange);
       // hook each registry to the mod event bus so its entries get registered: sounds, entities, processors, structures
       ForgottenBattleTowersSounds.REGISTRY.register(modEventBus);
       ForgottenBattleTowersEntities.REGISTRY.register(modEventBus);
